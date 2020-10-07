@@ -9,8 +9,9 @@ module Data.Bytes.Metrics
 import Control.Monad.ST (runST)
 import Data.Bytes (Bytes)
 
-import qualified Data.Primitive.Contiguous as Arr
 import qualified Data.Bytes as Bytes
+import qualified Data.Primitive.Contiguous as Arr
+import qualified Data.Primitive.PrimArray as Prim
 
 -- | Determine if two 'Bytes' are within a given Levenstein distance of each other (inclusive).
 -- Computes in O(t*min(n,m)) time and O(min(t,n,m)) space,
@@ -29,7 +30,11 @@ levensteinWithTolerance t a b
   | m > n = levensteinWithTolerance t b a
   | t < deltaN = Nothing
   | otherwise = runST $ do
-    row <- Arr.new @Arr.PrimArray rowLen
+    -- during table creation, some column indices will be negative:
+    -- the contents of such oob cells must not impact the contents of in-bounds cells
+    -- using maxBound to initialize could provoke overflow on increment
+    -- using n+m will definitely be larger than any entry in the table, but likely small enough to avoid wrapping arithmetic
+    row <- Prim.unsafeThawPrimArray (Prim.replicatePrimArray rowLen (n+m))
     let outerLoop rowIx
           | rowIx <= m = do
             let innerLoop bandIx
