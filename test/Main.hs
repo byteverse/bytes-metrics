@@ -5,7 +5,7 @@
 module Main (main) where
 
 import Data.Bytes (Bytes)
-import Data.Bytes.Metrics (levensteinWithTolerance)
+import Data.Bytes.Metrics (levenshteinWithTolerance)
 import Data.Word (Word8)
 
 import Test.Tasty (defaultMain,TestTree,testGroup)
@@ -23,28 +23,28 @@ tests :: TestTree
 tests = testGroup "Tests"
   [ testGroup "sanity properties"
     [ testProperty "commutative" $ \a b ->
-      let d = levensteinWithTolerance 100 a b
-          d' = levensteinWithTolerance 100 b a
+      let d = levenshteinWithTolerance 100 a b
+          d' = levenshteinWithTolerance 100 b a
        in d === d'
     , testProperty "non-negative" $ \a b ->
-      case levensteinWithTolerance 100 a b of
+      case levenshteinWithTolerance 100 a b of
         Nothing -> discard
         Just d -> d >= 0
     , testProperty "zero distance to self" $ \t a ->
-      levensteinWithTolerance (abs t) a a === Just 0
+      levenshteinWithTolerance (abs t) a a === Just 0
     , testProperty "distance to empty is length" $ \a ->
       let d = Bytes.length a
-       in levensteinWithTolerance d a Bytes.empty === Just d
+       in levenshteinWithTolerance d a Bytes.empty === Just d
     ]
   , testGroup "golden tests"
     [ testProperty "hellofworld" $
         let a = Bytes.fromAsciiString "hello world"
             b = Bytes.fromAsciiString "hellofworld"
-         in levensteinWithTolerance 10 a b == Just 1
+         in levenshteinWithTolerance 10 a b == Just 1
     , testProperty "xyzzy" $
         let a = Bytes.fromAsciiString "xyzzy"
             b = Bytes.fromAsciiString "syzygy"
-         in levensteinWithTolerance 10 a b == Just 3
+         in levenshteinWithTolerance 10 a b == Just 3
     ]
   ]
 

@@ -4,8 +4,8 @@
 {-# LANGUAGE TypeApplications #-}
 
 module Data.Bytes.Metrics
-  ( levensteinWithTolerance
-  , isWithinLevenstein
+  ( levenshteinWithTolerance
+  , isWithinLevenshtein
   ) where
 
 import Control.Monad.ST (runST)
@@ -15,21 +15,30 @@ import qualified Data.Bytes as Bytes
 import qualified Data.Primitive.Contiguous as Arr
 import qualified Data.Primitive.PrimArray as Prim
 
--- | Determine if two 'Bytes' are within a given Levenstein distance of each other (inclusive).
+-- | Determine if two 'Bytes' are within a given Levenshtein distance of each other (inclusive).
 -- Computes in O(t*min(n,m)) time and O(min(t,n,m)) space,
 -- where @n,m@ are lengths of the input strings and @t@ is the tolerance.
-isWithinLevenstein :: Int -> Bytes -> Bytes -> Bool
-isWithinLevenstein t a b = maybe False (<= t) $ levensteinWithTolerance t a b
+isWithinLevenshtein :: Int -> Bytes -> Bytes -> Bool
+isWithinLevenshtein t a b = maybe False (<= t) $ levenshteinWithTolerance t a b
 
--- | Determine Levenstein distance between two strings, as long as their
+-- | Determine Levenshtein distance between two strings, as long as their
 -- distance is within (inclusive) the given tolerance.
 -- Computes in O(t*min(n,m)) time and O(min(t,n,m)) space,
 -- where @n,m@ are lengths of the input strings and @t@ is the tolerance.
-levensteinWithTolerance :: Int -> Bytes -> Bytes -> Maybe Int
-levensteinWithTolerance !t !a !b
+levenshteinWithTolerance :: Int -> Bytes -> Bytes -> Maybe Int
+levenshteinWithTolerance !t !a !b
   -- ensure that the first string (which will create columns) is longer
   -- this minimizes the space needed for intermediate results
-  | m > n = levensteinWithTolerance t b a
+  | t == 0 = if a == b then Just 0 else Nothing
+  | m > n = levenshteinWithWorker t b a
+  | otherwise = levenshteinWithWorker t a b
+  where
+  m = Bytes.length a
+  n = Bytes.length b
+
+-- Precondition: Length of A is less than or equal to length of B.
+levenshteinWithWorker :: Int -> Bytes -> Bytes -> Maybe Int
+levenshteinWithWorker !t !a !b
   | t < deltaN = Nothing
   | otherwise = runST $ do
     -- during table creation, some column indices will be negative:
