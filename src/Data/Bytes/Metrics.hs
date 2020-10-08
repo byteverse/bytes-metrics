@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Data.Bytes.Metrics
@@ -35,22 +36,23 @@ levensteinWithTolerance !t !a !b
     -- the contents of such oob cells must not impact the contents of in-bounds cells
     -- using maxBound to initialize could provoke overflow on increment
     -- using n+m will definitely be larger than any entry in the table, but likely small enough to avoid wrapping arithmetic
-    row <- Prim.unsafeThawPrimArray (Prim.replicatePrimArray rowLen (n+m))
-    let outerLoop rowIx
+    row :: Prim.MutablePrimArray s Int <- Arr.replicateMutable rowLen (n+m)
+    let outerLoop !rowIx
           | rowIx <= m = do
-            let innerLoop bandIx
+            let innerLoop !bandIx
                   | bandIx < rowLen = do
                     let colIx = rowIx - p + bandIx
                     let initCost = if rowIx == 0 && colIx == 0 then 0 else maxBound
-                    editCost <-
+                    let !byteA = Bytes.unsafeIndex a (rowIx - 1)
+                    let !byteB = Bytes.unsafeIndex b (colIx - 1)
+                    !editCost <-
                       if | not (1 <= colIx && colIx <= n) -> pure maxBound
-                         | Bytes.unsafeIndex a (rowIx - 1) == Bytes.unsafeIndex b (colIx - 1)
-                          -> Arr.read row bandIx
+                         | byteA == byteB -> Arr.read row bandIx
                          | otherwise -> (1+) <$> Arr.read row bandIx
-                    insCost <- if 0 <= bandIx - 1
+                    !insCost <- if 0 <= bandIx - 1
                       then (1+) <$> Arr.read row (bandIx - 1)
                       else pure maxBound
-                    delCost <- if bandIx + 1 < rowLen
+                    !delCost <- if bandIx + 1 < rowLen
                       then (1+) <$> Arr.read row (bandIx + 1)
                       else pure maxBound
                     let cost = min (min initCost editCost) (min insCost delCost)

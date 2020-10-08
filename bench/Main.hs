@@ -9,7 +9,12 @@ import qualified Data.Bytes as Bytes
 
 main :: IO ()
 main = defaultMain
-  [ bench "80 chars" $ whnf (uncurry $ levensteinWithTolerance 2) strings
+  [ bgroup "80-chars"
+    [ bench "distance-1" (whnf (uncurry $ levensteinWithTolerance 1) strings)
+    , bench "distance-2" (whnf (uncurry $ levensteinWithTolerance 2) strings)
+    , bench "distance-3" (whnf (uncurry $ levensteinWithTolerance 3) strings)
+    , bench "distance-4" (whnf (uncurry $ levensteinWithTolerance 4) strings)
+    ]
   ]
 
 prefix :: String
