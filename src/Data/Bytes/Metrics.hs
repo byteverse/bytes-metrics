@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -24,7 +25,7 @@ isWithinLevenstein t a b = maybe False (<= t) $ levensteinWithTolerance t a b
 -- Computes in O(t*min(n,m)) time and O(min(t,n,m)) space,
 -- where @n,m@ are lengths of the input strings and @t@ is the tolerance.
 levensteinWithTolerance :: Int -> Bytes -> Bytes -> Maybe Int
-levensteinWithTolerance t a b
+levensteinWithTolerance !t !a !b
   -- ensure that the first string (which will create columns) is longer
   -- this minimizes the space needed for intermediate results
   | m > n = levensteinWithTolerance t b a
@@ -52,7 +53,7 @@ levensteinWithTolerance t a b
                     delCost <- if bandIx + 1 < rowLen
                       then (1+) <$> Arr.read row (bandIx + 1)
                       else pure maxBound
-                    let cost = minimum [initCost, editCost, insCost, delCost]
+                    let cost = min (min initCost editCost) (min insCost delCost)
                     Arr.write row bandIx cost
                     innerLoop (bandIx + 1)
                   | otherwise = pure ()
