@@ -45,7 +45,7 @@ levenshteinWithWorker !t !a !b
     -- the contents of such oob cells must not impact the contents of in-bounds cells
     -- using maxBound to initialize could provoke overflow on increment
     -- using n+m will definitely be larger than any entry in the table, but likely small enough to avoid wrapping arithmetic
-    row :: Prim.MutablePrimArray s Int <- Arr.replicateMutable rowLen (n+m)
+    row :: Prim.MutablePrimArray s Int <- Arr.replicateMut rowLen (n+m)
     let outerLoop !rowIx
           | rowIx <= m = do
             let innerLoop !bandIx
