@@ -4,7 +4,7 @@ import Data.List (unfoldr)
 import Gauge.Main (bench, bgroup, defaultMain, whnf)
 import System.Random (mkStdGen, uniformR)
 
-import qualified Data.Bytes as Bytes
+import qualified Data.Bytes.Text.Ascii as Ascii
 
 main :: IO ()
 main =
@@ -25,4 +25,4 @@ prefix = take 80 (unfoldr (Just . uniformR (' ', '~')) (mkStdGen 62861853071))
 
 strings :: (Bytes, Bytes)
 {-# NOINLINE strings #-}
-strings = (Bytes.fromAsciiString $ prefix ++ "a", Bytes.fromAsciiString $ prefix ++ "b")
+strings = (Ascii.fromString $ prefix ++ "a", Ascii.fromString $ prefix ++ "b")

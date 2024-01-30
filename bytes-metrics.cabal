@@ -2,6 +2,10 @@ cabal-version:   3.0
 name:            bytes-metrics
 version:         0.1.0.0
 synopsis:        Calculate string metrics on Bytes efficiently
+description:
+  Calculate string metrics on Bytes efficiently. This library currently only
+  calculates Levenshtein distance, but other metrics may be added in the future.
+
 homepage:        https://github.com/byteverse/bytes-metrics
 bug-reports:     https://github.com/byteverse/bytes-metrics/issues
 license:         BSD-3-Clause
