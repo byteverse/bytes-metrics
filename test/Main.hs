@@ -11,6 +11,7 @@ import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.QuickCheck (Arbitrary (..), discard, testProperty, (===))
 
 import qualified Data.Bytes as Bytes
+import qualified Data.Bytes.Text.Ascii as Ascii
 import qualified Data.Primitive as Prim
 import qualified Test.Tasty.QuickCheck as TQC
 
@@ -40,12 +41,12 @@ tests =
     , testGroup
         "golden tests"
         [ testProperty "hellofworld" $
-            let a = Bytes.fromAsciiString "hello world"
-                b = Bytes.fromAsciiString "hellofworld"
+            let a = Ascii.fromString "hello world"
+                b = Ascii.fromString "hellofworld"
              in levenshteinWithTolerance 10 a b == Just 1
         , testProperty "xyzzy" $
-            let a = Bytes.fromAsciiString "xyzzy"
-                b = Bytes.fromAsciiString "syzygy"
+            let a = Ascii.fromString "xyzzy"
+                b = Ascii.fromString "syzygy"
              in levenshteinWithTolerance 10 a b == Just 3
         ]
     ]
